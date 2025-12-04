@@ -3,12 +3,13 @@
 Returns a predefined response. Replace logic and configuration as needed.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any, Dict
 
+from langchain import init_chat_model
+from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.runtime import Runtime
 from typing_extensions import TypedDict
 
@@ -20,7 +21,8 @@ class Context(TypedDict):
     See: https://langchain-ai.github.io/langgraph/cloud/how-tos/configuration_cloud/
     """
 
-    my_configurable_param: str
+    model_name: str
+    temperature: float
 
 
 @dataclass
@@ -39,16 +41,17 @@ async def call_model(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
 
     Can use runtime context to alter behavior.
     """
-    return {
-        "changeme": "output from call_model. "
-        f"Configured with {(runtime.context or {}).get('my_configurable_param')}"
-    }
+    model_name = runtime.context.get("model_name", "gpt-4o-mini")
+    temperature = runtime.context.get("temperature", 0.7)
+    model = init_chat_model(model=model_name, temperature=temperature)
+    response = await model.ainvoke(state["messages"])
+    return {"messages": [response]}
 
 
-# Define the graph
-graph = (
-    StateGraph(State, context_schema=Context)
-    .add_node(call_model)
-    .add_edge("__start__", "call_model")
-    .compile(name="New Graph")
-)
+def build_graph(config: RunnableConfig) -> CompiledStateGraph:
+    """Build the graph."""
+    debug = bool(config.get("configurable", {}).get("debug", False))
+    graph = StateGraph(State, context_schema=Context)
+    graph.add_node(call_model)
+    graph.add_edge("__start__", "call_model")
+    return graph.compile(name="New Graph", debug=debug)
