@@ -8,6 +8,5 @@
     "simple": "./agents/simple/graph.py:build_graph",
     "deep": "./agents/deep/agent.py:build_graph"
   },
-  "env": ".env",
-  "image_distro": "wolfi"
+  "env": ".env"
 }

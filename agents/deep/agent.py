@@ -125,7 +125,7 @@ async def run_deep_agent(state: State, runtime: Runtime[Context]) -> Dict[str, A
 
     # Create and run the deep agent within sandbox context
     with create_sandbox(
-        provider="modal",
+        provider="daytona",
         setup_script_path="scripts/sandbox_setup.sh",
     ) as sandbox_backend:
         deep_agent = create_deep_agent(

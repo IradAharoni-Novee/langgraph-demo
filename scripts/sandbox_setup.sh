@@ -1,10 +1,17 @@
 #!/bin/bash
-# Setup script for Modal sandbox
+# Setup script for sandbox environments
 
 set -e
 
+# Use sudo only if not running as root
+if [ "$(id -u)" -eq 0 ]; then
+    SUDO=""
+else
+    SUDO="sudo"
+fi
+
 # Update package lists
-apt-get update
+$SUDO apt-get update
 
 # Installs necessary packages
-apt-get install -y nodejs npm curl wget
+$SUDO apt-get install -y nodejs npm curl wget
